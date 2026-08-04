@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Savings Management System</title>
+  <title>Savings Management System - Ipon Tracker</title>
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- External CSS -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="ipon.css">
 </head>
 <body>
 
@@ -72,31 +72,46 @@
           <input type="date" id="create-end" onchange="updateSuggestion('create')">
         </div>
         
-        <!-- SIDE-BY-SIDE: Schedule Interval & Default Saving Amount -->
+        <!-- Schedule Interval & Default Saving Amount -->
         <div class="form-group">
           <label>Savings Schedule Interval</label>
           <select id="create-interval" onchange="toggleIntervalField('create'); updateSuggestion('create');">
-            <option value="everyday">Everyday</option>
+            <option value="everyday">Everyday (7 Days/Week)</option>
+            <option value="weekdays">Weekdays Only (Mon–Fri)</option>
+            <option value="days_per_week">Custom Days per Week</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
-            <option value="custom">Day Interval (Custom)</option>
+            <option value="custom">Day Interval (Every N Days)</option>
           </select>
         </div>
         <div class="form-group">
           <label>Default Saving Amount (₱)</label>
-          <input type="number" id="create-deposit" placeholder="500" min="1" step="0.01" required>
+          <input type="number" id="create-deposit" placeholder="500" min="0.1" step="0.1" required>
         </div>
 
-        <!-- Custom Day Interval (Hidden unless 'custom' is selected) -->
+        <!-- Custom Days per Week -->
+        <div class="form-group full-width hidden" id="create-weekly-days-group">
+          <label>How Many Days per Week?</label>
+          <input type="number" id="create-days-per-week" placeholder="3" min="1" max="7" value="3" oninput="updateSuggestion('create')">
+        </div>
+
+        <!-- Custom Day Interval (Every N Days) -->
         <div class="form-group full-width hidden" id="create-custom-group">
           <label>Interval Days (Every N Days)</label>
-          <input type="number" id="create-custom-days" placeholder="3" min="1" value="1" oninput="updateSuggestion('create')">
+          <input type="number" id="create-custom-days" placeholder="3" min="1" value="3" oninput="updateSuggestion('create')">
         </div>
 
         <!-- Smart Suggestion Box -->
         <div class="form-group full-width">
           <div id="create-suggestion-box" class="suggestion-box hidden">
-            <span id="create-suggestion-text"></span>
+            <div class="suggestion-content">
+              <svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"></path>
+                <path d="M9 18h6"></path>
+                <path d="M10 22h4"></path>
+              </svg>
+              <span id="create-suggestion-text"></span>
+            </div>
             <button type="button" class="btn-suggestion" id="create-suggestion-btn" onclick="applySuggestion('create')">Use Suggested Amount</button>
           </div>
         </div>
@@ -136,22 +151,29 @@
           <input type="date" id="edit-end" onchange="updateSuggestion('edit')">
         </div>
 
-        <!-- SIDE-BY-SIDE: Schedule Interval & Default Saving Amount -->
         <div class="form-group">
           <label>Savings Schedule Interval</label>
           <select id="edit-interval" onchange="toggleIntervalField('edit'); updateSuggestion('edit');">
-            <option value="everyday">Everyday</option>
-            <option value="weekly">Per Week</option>
+            <option value="everyday">Everyday (7 Days/Week)</option>
+            <option value="weekdays">Weekdays Only (Mon–Fri)</option>
+            <option value="days_per_week">Custom Days per Week</option>
+            <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
-            <option value="custom">Day Interval (Custom)</option>
+            <option value="custom">Day Interval (Every N Days)</option>
           </select>
         </div>
         <div class="form-group">
           <label>Default Saving Amount (₱)</label>
-          <input type="number" id="edit-deposit" min="1" step="0.01" required>
+          <input type="number" id="edit-deposit" min="0.1" step="0.1" required>
         </div>
 
-        <!-- Custom Day Interval (Hidden unless 'custom' is selected) -->
+        <!-- Custom Days per Week -->
+        <div class="form-group full-width hidden" id="edit-weekly-days-group">
+          <label>How Many Days per Week?</label>
+          <input type="number" id="edit-days-per-week" min="1" max="7" oninput="updateSuggestion('edit')">
+        </div>
+
+        <!-- Custom Day Interval -->
         <div class="form-group full-width hidden" id="edit-custom-group">
           <label>Interval Days (Every N Days)</label>
           <input type="number" id="edit-custom-days" min="1" oninput="updateSuggestion('edit')">
@@ -160,7 +182,14 @@
         <!-- Smart Suggestion Box -->
         <div class="form-group full-width">
           <div id="edit-suggestion-box" class="suggestion-box hidden">
-            <span id="edit-suggestion-text"></span>
+            <div class="suggestion-content">
+              <svg class="suggestion-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"></path>
+                <path d="M9 18h6"></path>
+                <path d="M10 22h4"></path>
+              </svg>
+              <span id="edit-suggestion-text"></span>
+            </div>
             <button type="button" class="btn-suggestion" id="edit-suggestion-btn" onclick="applySuggestion('edit')">Use Suggested Amount</button>
           </div>
         </div>
@@ -229,42 +258,67 @@
           <span style="font-size: 0.82rem; color: var(--text-muted);">Adjust amount below. Cannot exceed remaining target balance.</span>
         </div>
         <div class="transaction-controls">
-          <input type="number" id="current-transaction-input" step="0.01" min="1" style="width: 140px;" placeholder="Amount">
+          <input type="number" id="current-transaction-input" step="0.1" min="0.1" style="width: 140px;" placeholder="Amount">
           <button class="btn btn-success" onclick="addTransaction('deposit')">Deposit</button>
           <button class="btn btn-danger" onclick="addTransaction('withdraw')">Withdraw</button>
         </div>
       </div>
 
-      <!-- Accomplished Banner (Displayed when Goal == 100%) -->
+      <!-- Accomplished Banner (No Emoji, Formal SVG Icon) -->
       <div id="accomplished-banner-box" class="accomplished-banner hidden">
-        <div>
-          <strong style="display: block; font-size: 1.05rem; color: var(--success); margin-bottom: 2px;">🎉 Goal Accomplished! Account Closed.</strong>
-          <span style="font-size: 0.88rem; color: var(--text);">You have completed this savings target! To keep saving, start a new ipon goal.</span>
+        <div class="banner-content">
+          <svg class="banner-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+          <div>
+            <strong style="display: block; font-size: 1.05rem; color: var(--success); margin-bottom: 2px;">Goal Accomplished! Account Closed.</strong>
+            <span style="font-size: 0.88rem; color: var(--text);">You have completed this savings target! To keep saving, start a new ipon goal.</span>
+          </div>
         </div>
         <button class="btn btn-primary" onclick="showCreateForm()"> + Create Another Ipon</button>
       </div>
 
-      <!-- 1. Transaction Ledger (Top) -->
+      <!-- 1. SAVINGS SCHEDULE CALENDAR -->
+      <div class="section-header">
+        <div class="section-title">Savings Schedule Calendar</div>
+        <div id="calendar-pager" class="calendar-pager hidden">
+          <button type="button" id="calendar-prev-btn" class="btn btn-secondary calendar-pager-btn" onclick="changeCalendarPage(-1)" aria-label="Previous period">&#8249;</button>
+          <span id="calendar-pager-label" class="calendar-pager-label"></span>
+          <button type="button" id="calendar-next-btn" class="btn btn-secondary calendar-pager-btn" onclick="changeCalendarPage(1)" aria-label="Next period">&#8250;</button>
+        </div>
+      </div>
+      <div id="schedule-calendar-grid" class="calendar-grid">
+        <!-- Dynamically populated slots -->
+      </div>
+
+      <!-- 2. TRANSACTION LEDGER -->
       <div class="section-header">
         <div class="section-title">Transaction Ledger</div>
+        <button type="button" class="btn btn-secondary" onclick="exportLedgerCSV()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Export CSV
+        </button>
       </div>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Timestamp Recorded</th>
-            <th>Type</th>
-            <th>Amount</th>
-            <th>Remaining Balance</th>
-          </tr>
-        </thead>
-        <tbody id="display-history-rows">
-          <tr>
-            <td colspan="4" style="text-align: center; color: var(--text-muted);">No transactions recorded yet.</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-scroll">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Timestamp Recorded</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Remaining Balance</th>
+            </tr>
+          </thead>
+          <tbody id="display-history-rows">
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--text-muted);">No transactions recorded yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-      <!-- 2. Summary Analytics (Below Ledger) -->
+      <!-- 3. SUMMARY ANALYTICS -->
       <div class="section-header">
         <div class="section-title">Period Summary Analytics</div>
         <div class="selector-group">
@@ -295,6 +349,6 @@
   </div>
 
   <!-- External JavaScript -->
-  <script src="app.js"></script>
+  <script src="ipon.js"></script>
 </body>
 </html>

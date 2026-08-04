@@ -284,6 +284,19 @@ select:focus, input:focus, textarea:focus {
   color: var(--primary);
 }
 
+.suggestion-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.suggestion-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
 .btn-suggestion {
   background-color: var(--primary);
   color: #ffffff;
@@ -338,6 +351,104 @@ select:focus, input:focus, textarea:focus {
   gap: 16px;
 }
 
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.banner-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--success);
+  flex-shrink: 0;
+}
+
+/* Schedule Calendar UI */
+/* Schedule Calendar UI */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 16px 0 28px 0;
+  max-height: 440px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.calendar-card {
+  background: var(--card-alt);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.calendar-card.is-paid {
+  background: var(--success-light);
+  border-color: var(--success);
+}
+
+.calendar-card .slot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  gap: 4px;
+}
+
+.calendar-card .slot-title {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendar-card .slot-body {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.calendar-card .slot-body strong {
+  color: var(--text);
+}
+
+/* Calendar Pager */
+.calendar-pager {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.calendar-pager-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.calendar-pager-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  background-color: var(--card-bg);
+}
+
+.calendar-pager-label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--primary);
+  min-width: 150px;
+  text-align: center;
+}
+
 /* Section Tabs & Tables */
 .section-header {
   display: flex;
@@ -384,6 +495,29 @@ select:focus, input:focus, textarea:focus {
 }
 
 /* Pill Badges */
+/* Scrollable Ledger Table */
+.table-scroll {
+  max-height: 380px;
+  overflow-y: auto;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  margin-top: 8px;
+}
+
+.table-scroll .table {
+  margin-top: 0;
+}
+
+.table-scroll .table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table-scroll .table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .badge {
   background: var(--accent-light);
   color: var(--primary);
