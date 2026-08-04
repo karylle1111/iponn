@@ -17,9 +17,9 @@
   --success: #6e8879;          /* Dusty Sage Green */
   --success-hover: #5a7164;
   --success-light: #eef3f0;
-  --danger: #c27b68;           /* Muted Terracotta */
-  --danger-hover: #a86654;
-  --danger-light: #fcf0ec;
+  --danger: #9c5c5c;           /* Pastel Maroon */
+  --danger-hover: #7e4a4a;
+  --danger-light: #f7eeed;
 
   --shadow-sm: 0 4px 12px rgba(67, 52, 43, 0.04);
   --shadow-md: 0 10px 30px rgba(67, 52, 43, 0.06);
