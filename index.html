@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Savings Management System</title>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- External CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 1. TOP ANALYTICS DASHBOARD -->
+  <div class="analytics-top">
+    <div class="stat-card">
+      <div class="label">Total Saved (All Accounts)</div>
+      <div class="value" id="stat-total-saved">₱0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Total Target Goals</div>
+      <div class="value" id="stat-total-target">₱0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Remaining Balance</div>
+      <div class="value" id="stat-total-remaining">₱0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Overall Completion</div>
+      <div class="value" id="stat-overall-progress">0%</div>
+    </div>
+  </div>
+
+  <!-- 2. GOAL SELECTOR & ACTION BAR -->
+  <div class="header-controls">
+    <div class="selector-group">
+      <label for="goal-selector" style="font-weight: 600; font-size: 0.9rem;">Active Goal:</label>
+      <select id="goal-selector" onchange="switchGoal()">
+        <option value="">No Account Selected</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="showCreateForm()">+ Create New Goal</button>
+  </div>
+
+  <!-- 3. CREATE NEW GOAL FORM -->
+  <div id="create-goal-section" class="card hidden">
+    <div class="card-header">
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary);">Create Savings Account</h3>
+    </div>
+    <form id="new-goal-form" onsubmit="saveNewGoal(event)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Goal Name</label>
+          <input type="text" id="create-name" placeholder="e.g., Monthly Ipon" required>
+        </div>
+        <div class="form-group">
+          <label>Target Amount (₱)</label>
+          <input type="number" id="create-target" placeholder="1000" min="1" step="0.01" oninput="updateSuggestion('create')" required>
+        </div>
+        <div class="form-group full-width">
+          <label>Description (Optional)</label>
+          <textarea id="create-description" rows="2" placeholder="Brief notes or purpose of this savings."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Start Date</label>
+          <input type="date" id="create-start" onchange="updateSuggestion('create')" required>
+        </div>
+        <div class="form-group">
+          <label>Target End Date <span class="optional-label">(Optional for Endless Savings)</span></label>
+          <input type="date" id="create-end" onchange="updateSuggestion('create')">
+        </div>
+        
+        <!-- SIDE-BY-SIDE: Schedule Interval & Default Saving Amount -->
+        <div class="form-group">
+          <label>Savings Schedule Interval</label>
+          <select id="create-interval" onchange="toggleIntervalField('create'); updateSuggestion('create');">
+            <option value="everyday">Everyday</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="custom">Day Interval (Custom)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Default Saving Amount (₱)</label>
+          <input type="number" id="create-deposit" placeholder="500" min="1" step="0.01" required>
+        </div>
+
+        <!-- Custom Day Interval (Hidden unless 'custom' is selected) -->
+        <div class="form-group full-width hidden" id="create-custom-group">
+          <label>Interval Days (Every N Days)</label>
+          <input type="number" id="create-custom-days" placeholder="3" min="1" value="1" oninput="updateSuggestion('create')">
+        </div>
+
+        <!-- Smart Suggestion Box -->
+        <div class="form-group full-width">
+          <div id="create-suggestion-box" class="suggestion-box hidden">
+            <span id="create-suggestion-text"></span>
+            <button type="button" class="btn-suggestion" id="create-suggestion-btn" onclick="applySuggestion('create')">Use Suggested Amount</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 12px; display: flex; gap: 10px;">
+        <button type="submit" class="btn btn-success">Save Account</button>
+        <button type="button" class="btn btn-secondary" onclick="hideCreateForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 4. EDIT ACTIVE GOAL FORM -->
+  <div id="edit-goal-section" class="card hidden">
+    <div class="card-header">
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary);">Edit Goal Parameters</h3>
+    </div>
+    <form id="edit-goal-form" onsubmit="updateGoalSettings(event)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Goal Name</label>
+          <input type="text" id="edit-name" required>
+        </div>
+        <div class="form-group">
+          <label>Target Amount (₱)</label>
+          <input type="number" id="edit-target" min="1" step="0.01" oninput="updateSuggestion('edit')" required>
+        </div>
+        <div class="form-group full-width">
+          <label>Description (Optional)</label>
+          <textarea id="edit-description" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Start Date</label>
+          <input type="date" id="edit-start" onchange="updateSuggestion('edit')" required>
+        </div>
+        <div class="form-group">
+          <label>Target End Date <span class="optional-label"> (Optional for Endless Savings)</span></label>
+          <input type="date" id="edit-end" onchange="updateSuggestion('edit')">
+        </div>
+
+        <!-- SIDE-BY-SIDE: Schedule Interval & Default Saving Amount -->
+        <div class="form-group">
+          <label>Savings Schedule Interval</label>
+          <select id="edit-interval" onchange="toggleIntervalField('edit'); updateSuggestion('edit');">
+            <option value="everyday">Everyday</option>
+            <option value="weekly">Per Week</option>
+            <option value="monthly">Monthly</option>
+            <option value="custom">Day Interval (Custom)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Default Saving Amount (₱)</label>
+          <input type="number" id="edit-deposit" min="1" step="0.01" required>
+        </div>
+
+        <!-- Custom Day Interval (Hidden unless 'custom' is selected) -->
+        <div class="form-group full-width hidden" id="edit-custom-group">
+          <label>Interval Days (Every N Days)</label>
+          <input type="number" id="edit-custom-days" min="1" oninput="updateSuggestion('edit')">
+        </div>
+
+        <!-- Smart Suggestion Box -->
+        <div class="form-group full-width">
+          <div id="edit-suggestion-box" class="suggestion-box hidden">
+            <span id="edit-suggestion-text"></span>
+            <button type="button" class="btn-suggestion" id="edit-suggestion-btn" onclick="applySuggestion('edit')">Use Suggested Amount</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 12px; display: flex; gap: 10px;">
+        <button type="submit" class="btn btn-primary">Update Changes</button>
+        <button type="button" class="btn btn-secondary" onclick="hideEditForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 5. ACTIVE GOAL DASHBOARD -->
+  <div id="active-goal-section" class="card">
+    <div id="empty-dashboard" class="empty-state">
+      <h3 style="margin-bottom: 8px; color: var(--primary); font-size: 1.3rem;">No Savings Account Available</h3>
+      <p>Click "+ Create New Goal" above to configure your first savings target and schedule.</p>
+    </div>
+
+    <div id="active-dashboard-content" class="hidden">
+      <div class="card-header">
+        <div>
+          <h2 id="display-goal-name" style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">Goal Name</h2>
+          <p id="display-description" style="color: var(--text-muted); font-size: 0.92rem; margin-top: 4px;"></p>
+          <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+            <span id="display-interval-badge" class="badge">Everyday</span>
+            <span id="display-status-badge" class="badge hidden">Status</span>
+            <span id="display-date-range" class="badge" style="background: var(--accent-light); color: var(--primary);">Range: -- to --</span>
+          </div>
+        </div>
+        <button class="btn btn-secondary" onclick="showEditForm()">Edit Parameters</button>
+      </div>
+
+      <!-- Financial & Timeline Metrics Grid -->
+      <div class="grid-4">
+        <div class="metric-box">
+          <div class="label">Target Amount</div>
+          <div class="num" id="display-target">₱0.00</div>
+        </div>
+        <div class="metric-box">
+          <div class="label">Total Amount Saved</div>
+          <div class="num" id="display-saved" style="color: var(--success);">₱0.00</div>
+        </div>
+        <div class="metric-box">
+          <div class="label">Remaining Balance</div>
+          <div class="num" id="display-remaining">₱0.00</div>
+        </div>
+        <div class="metric-box">
+          <div class="label">Time Remaining</div>
+          <div class="num" id="display-days-left">0 Days</div>
+        </div>
+      </div>
+
+      <!-- Progress Section -->
+      <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 0.88rem; color: var(--text);">
+        <span>Completion Progress</span>
+        <span id="display-progress-pct">0%</span>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar" id="display-progress-bar"></div>
+      </div>
+
+      <!-- Active Editable Deposit & Withdrawal Box -->
+      <div id="active-transaction-box" class="transaction-box">
+        <div>
+          <strong style="display: block; font-size: 0.98rem; color: var(--primary);">Record Transaction</strong>
+          <span style="font-size: 0.82rem; color: var(--text-muted);">Adjust amount below. Cannot exceed remaining target balance.</span>
+        </div>
+        <div class="transaction-controls">
+          <input type="number" id="current-transaction-input" step="0.01" min="1" style="width: 140px;" placeholder="Amount">
+          <button class="btn btn-success" onclick="addTransaction('deposit')">Deposit</button>
+          <button class="btn btn-danger" onclick="addTransaction('withdraw')">Withdraw</button>
+        </div>
+      </div>
+
+      <!-- Accomplished Banner (Displayed when Goal == 100%) -->
+      <div id="accomplished-banner-box" class="accomplished-banner hidden">
+        <div>
+          <strong style="display: block; font-size: 1.05rem; color: var(--success); margin-bottom: 2px;">🎉 Goal Accomplished! Account Closed.</strong>
+          <span style="font-size: 0.88rem; color: var(--text);">You have completed this savings target! To keep saving, start a new ipon goal.</span>
+        </div>
+        <button class="btn btn-primary" onclick="showCreateForm()"> + Create Another Ipon</button>
+      </div>
+
+      <!-- 1. Transaction Ledger (Top) -->
+      <div class="section-header">
+        <div class="section-title">Transaction Ledger</div>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Timestamp Recorded</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Remaining Balance</th>
+          </tr>
+        </thead>
+        <tbody id="display-history-rows">
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--text-muted);">No transactions recorded yet.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 2. Summary Analytics (Below Ledger) -->
+      <div class="section-header">
+        <div class="section-title">Period Summary Analytics</div>
+        <div class="selector-group">
+          <label for="summary-period-selector" style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Group By:</label>
+          <select id="summary-period-selector" onchange="renderAnalyticsSummary()" style="padding: 7px 12px;">
+            <option value="monthly">Monthly Summary</option>
+            <option value="weekly">Weekly Summary</option>
+          </select>
+        </div>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Time Period</th>
+            <th>Total Deposited</th>
+            <th>Total Withdrawn</th>
+            <th>Net Saved</th>
+            <th>Transactions</th>
+          </tr>
+        </thead>
+        <tbody id="display-summary-rows">
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted);">No transaction analytics available yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- External JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
