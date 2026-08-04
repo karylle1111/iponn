@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const navOverlay = document.getElementById('nav-overlay');
   const drawerClose = document.getElementById('drawer-close');
   const menuItems = document.querySelectorAll('.menu-item');
+  const headerActionBtns = document.querySelectorAll('.nav-icon-btn');
 
   const savingsView = document.getElementById('savings-view');
   const blankView = document.getElementById('blank-view');
@@ -13,13 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Module Details Configuration for Blank Pages
   const viewDetails = {
-    profile: {
-      title: "User Profile",
-      desc: "Manage account settings, user preferences, and security details."
+    main: {
+      title: "Main Page",
+      desc: "Overall statistics, system metrics, and financial summaries will be displayed here."
     },
     savings: {
       title: "Savings Tracker",
-      desc: "" // Handled via iframe
+      desc: "" // Rendered via embedded ipon.html
     },
     bills: {
       title: "Pay Bills Tracker",
@@ -28,6 +29,14 @@ document.addEventListener('DOMContentLoaded', () => {
     expenses: {
       title: "Expenses Tracker",
       desc: "Track daily spending, categorize outgoings, and view budget insights."
+    },
+    profile: {
+      title: "User Profile",
+      desc: "Manage account settings, personal details, and user preferences."
+    },
+    notifications: {
+      title: "Notifications",
+      desc: "View recent system alerts, payment reminders, and status updates."
     },
     report: {
       title: "Report a Problem",
@@ -43,13 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Open Drawer
+  // Drawer Handlers
   const openDrawer = () => {
     sideDrawer.classList.add('open');
     navOverlay.classList.add('active');
   };
 
-  // Close Drawer
   const closeDrawer = () => {
     sideDrawer.classList.remove('open');
     navOverlay.classList.remove('active');
@@ -59,33 +67,60 @@ document.addEventListener('DOMContentLoaded', () => {
   drawerClose.addEventListener('click', closeDrawer);
   navOverlay.addEventListener('click', closeDrawer);
 
-  // Handle Navigation Item Selection
+  // Switch Active View Function
+  const switchView = (viewKey) => {
+    const targetData = viewDetails[viewKey];
+    if (!targetData) return;
+
+    // Update Header Badge Text
+    currentViewLabel.textContent = targetData.title;
+
+    // Highlight menu items in drawer
+    menuItems.forEach(item => {
+      if (item.getAttribute('data-view') === viewKey) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
+
+    // Highlight header buttons if active
+    headerActionBtns.forEach(btn => {
+      if (btn.getAttribute('data-view') === viewKey) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Toggle Content Views
+    if (viewKey === 'savings') {
+      savingsView.classList.add('active');
+      blankView.classList.remove('active');
+    } else {
+      savingsView.classList.remove('active');
+      blankView.classList.add('active');
+      blankTitle.textContent = targetData.title;
+      blankDesc.textContent = targetData.desc;
+    }
+
+    closeDrawer();
+  };
+
+  // Event Listeners for Drawer Links
   menuItems.forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
-
-      // Update active menu state
-      menuItems.forEach(el => el.classList.remove('active'));
-      item.classList.add('active');
-
       const viewKey = item.getAttribute('data-view');
-      const targetData = viewDetails[viewKey];
+      switchView(viewKey);
+    });
+  });
 
-      // Update Top Nav Subtitle Badge
-      currentViewLabel.textContent = targetData.title;
-
-      // Switch View Content
-      if (viewKey === 'savings') {
-        savingsView.classList.add('active');
-        blankView.classList.remove('active');
-      } else {
-        savingsView.classList.remove('active');
-        blankView.classList.add('active');
-        blankTitle.textContent = targetData.title;
-        blankDesc.textContent = targetData.desc;
-      }
-
-      closeDrawer();
+  // Event Listeners for Header Buttons (Profile & Notifications)
+  headerActionBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const viewKey = btn.getAttribute('data-view');
+      switchView(viewKey);
     });
   });
 });

@@ -74,7 +74,40 @@ body {
   letter-spacing: 0.05em;
 }
 
-/* BURGER BUTTON (RIGHT ALIGNED) */
+/* HEADER ACTION BUTTONS */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-icon-btn {
+  background: var(--card-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  color: var(--primary);
+  transition: all 0.2s ease;
+}
+
+.nav-icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.nav-icon-btn:hover,
+.nav-icon-btn.active {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--primary);
+}
+
+/* BURGER BUTTON */
 .burger-btn {
   background: var(--card-alt);
   border: 1px solid var(--border);
