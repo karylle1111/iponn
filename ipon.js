@@ -167,6 +167,7 @@ function renderActiveGoal() {
    but the pager UI is reused/hidden automatically when there's only one page. */
 let calendarPageIndex = 0;
 let calendarPageGroups = []; // [{ key, label, slots: [...] }]
+let calendarPeriodWord = "day"; // "day" | "week" | "month" — matches the goal's interval type
 
 function renderScheduleCalendar() {
   const grid = document.getElementById("schedule-calendar-grid");
@@ -261,6 +262,42 @@ function renderScheduleCalendar() {
     });
   }
 
+  // --- Per-slot allocation (waterfall) ---
+  // Each slot has its own incremental amount due for that specific day/week/month
+  // (not the running cumulative total). The user's total saved is poured through
+  // the slots in order, filling each one's own amount before spilling into the
+  // next — so a slot can now be "Paid" (fully covered), "Partial" (something
+  // was put toward it but not enough), or "Pending" (nothing yet), and we can
+  // tell them exactly how much more that specific period still needs.
+  let prevExpectedCents = 0;
+  const savedCentsTotal = toCents(goal.saved);
+  const isGoalAccomplished = goal.saved >= goal.target;
+
+  slots.forEach(slot => {
+    const expectedCents = toCents(slot.expected);
+    const slotAmountCents = Math.max(0, expectedCents - prevExpectedCents);
+    const allocatedCents = Math.min(slotAmountCents, Math.max(0, savedCentsTotal - prevExpectedCents));
+    const remainingCents = slotAmountCents - allocatedCents;
+
+    slot.slotAmountCents = slotAmountCents;
+    slot.allocatedCents = allocatedCents;
+    slot.remainingCents = remainingCents;
+
+    if (isGoalAccomplished || remainingCents <= 0) {
+      slot.status = "paid";
+    } else if (allocatedCents > 0) {
+      slot.status = "partial";
+    } else {
+      slot.status = "pending";
+    }
+
+    prevExpectedCents = expectedCents;
+  });
+
+  let periodWord = "day";
+  if (goal.intervalType === "monthly") periodWord = "month";
+  else if (goal.intervalType === "weekly" || goal.intervalType === "days_per_week") periodWord = "week";
+
   // --- Group slots into pages ---
   const groups = [];
   const groupIndexByKey = {};
@@ -283,6 +320,7 @@ function renderScheduleCalendar() {
   });
 
   calendarPageGroups = groups.length > 0 ? groups : [{ key: "none", label: "", slots: [] }];
+  calendarPeriodWord = periodWord;
 
   // Default to the page containing today (if it's within range), otherwise page 0,
   // but only re-anchor when switching goals — keep the user's position on re-renders.
@@ -326,7 +364,6 @@ function renderCalendarPage(goal) {
   if (!grid || !goal) return;
   grid.innerHTML = "";
 
-  const isGoalAccomplished = goal.saved >= goal.target;
   const pageSlots = calendarPageGroups[calendarPageIndex] ? calendarPageGroups[calendarPageIndex].slots : [];
 
   if (pageSlots.length === 0) {
@@ -335,21 +372,42 @@ function renderCalendarPage(goal) {
   }
 
   pageSlots.forEach((slot) => {
-    const isPaid = isGoalAccomplished || (goal.saved + 0.05 >= slot.expected);
-    const remainingForSlot = Math.max(0, (slot.expected - goal.saved)).toFixed(2);
-    
+    const slotAmount = fromCents(slot.slotAmountCents).toFixed(2);
+    const allocated = fromCents(slot.allocatedCents).toFixed(2);
+    const remaining = fromCents(slot.remainingCents).toFixed(2);
+
+    let cardStateClass = "";
+    let badgeClass = "";
+    let badgeText = "Pending";
+    let statusColor = "var(--text-muted)";
+    let statusLine = `₱${remaining} needed`;
+
+    if (slot.status === "paid") {
+      cardStateClass = "is-paid";
+      badgeClass = "badge-completed";
+      badgeText = "Paid";
+      statusColor = "var(--success)";
+      statusLine = "Done — fully deposited";
+    } else if (slot.status === "partial") {
+      cardStateClass = "is-partial";
+      badgeClass = "badge-partial";
+      badgeText = "Partial";
+      statusColor = "var(--accent-hover)";
+      statusLine = `₱${allocated} saved · ₱${remaining} more to complete`;
+    }
+
     const card = document.createElement("div");
-    card.className = `calendar-card ${isPaid ? 'is-paid' : ''}`;
+    card.className = `calendar-card ${cardStateClass}`;
     
     card.innerHTML = `
       <div class="slot-header">
         <span class="slot-title">${slot.label}</span>
-        <span class="badge ${isPaid ? 'badge-completed' : ''}">${isPaid ? 'Paid' : 'Pending'}</span>
+        <span class="badge ${badgeClass}">${badgeText}</span>
       </div>
       <div class="slot-body">
-        Expected: <strong>₱${slot.expected.toFixed(2)}</strong><br>
-        Status: <span style="color: ${isPaid ? 'var(--success)' : 'var(--text-muted)'}; font-weight: 600;">
-          ${isPaid ? 'Done' : '₱' + remainingForSlot + ' left'}
+        Target for this ${calendarPeriodWord}: <strong>₱${slotAmount}</strong><br>
+        Status: <span style="color: ${statusColor}; font-weight: 600;">
+          ${statusLine}
         </span>
       </div>
     `;

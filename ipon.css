@@ -392,6 +392,11 @@ select:focus, input:focus, textarea:focus {
   border-color: var(--success);
 }
 
+.calendar-card.is-partial {
+  background: var(--accent-light);
+  border-color: var(--accent);
+}
+
 .calendar-card .slot-header {
   display: flex;
   justify-content: space-between;
@@ -537,6 +542,11 @@ select:focus, input:focus, textarea:focus {
 .badge-withdraw {
   background: var(--danger-light);
   color: var(--danger);
+}
+
+.badge-partial {
+  background: var(--accent-light);
+  color: var(--accent-hover);
 }
 
 .badge-completed {
