@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Bills Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="bills.css">
+</head>
+<body>
+
+  <!-- 2. HEADER CONTROLS -->
+  <div class="header-controls">
+    <div>
+      <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">Bills & Payment Management</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Click any bill pill in the calendar to modify or pay it directly.</p>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" onclick="showAddBillForm()">+ Add Bill</button>
+      <button class="btn btn-primary" onclick="showPayBillForm()">+ Pay Bill</button>
+    </div>
+  </div>
+  <!-- 1. ANALYTICS DASHBOARD -->
+  <div class="analytics-top">
+    <div class="stat-card">
+      <div class="label">Total Bills Amount</div>
+      <div class="value" id="stat-total-bills">₱0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Total Amount Paid</div>
+      <div class="value" id="stat-total-paid">₱0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Remaining Unpaid Balance</div>
+      <div class="value" id="stat-total-unpaid">₱0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Payment Completion Rate</div>
+      <div class="value" id="stat-completion-rate">0%</div>
+    </div>
+  </div>
+  
+  <!-- 3. ADD BILL FORM -->
+  <div id="add-bill-section" class="card hidden">
+    <div class="card-header">
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary);">Add New Bill</h3>
+    </div>
+    <form id="add-bill-form" onsubmit="saveBill(event)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Bill Name</label>
+          <input type="text" id="bill-name" placeholder="e.g., Meralco Electricity, PLDT Fiber" required>
+        </div>
+        <div class="form-group">
+          <label>Amount (₱)</label>
+          <input type="number" id="bill-amount" placeholder="2500" min="0.01" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>Mode of Payment</label>
+          <select id="bill-mode" required>
+            <option value="Cash">Cash</option>
+            <option value="GCash">GCash</option>
+            <option value="Maya">Maya</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="Credit Card">Credit Card</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Frequency</label>
+          <select id="bill-frequency" onchange="toggleReminderFields('bill')" required>
+            <option value="One-time">One-time</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Annual">Annual</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>First / Next Due Date</label>
+          <input type="date" id="bill-due-date" required>
+        </div>
+
+        <!-- Reminder: shape depends on frequency -->
+        <div class="form-group hidden" id="bill-reminder-none-group">
+          <label>Reminder <span class="optional-label">(Not applicable)</span></label>
+          <input type="text" value="One-time bills use the due date above — no separate reminder needed." disabled>
+        </div>
+        <div class="form-group hidden" id="bill-reminder-monthly-group">
+          <label>Reminder — Day of Month</label>
+          <input type="number" id="bill-reminder-day-month" min="1" max="31" placeholder="e.g., 5">
+        </div>
+        <div class="form-group hidden" id="bill-reminder-weekly-group">
+          <label>Reminder — Day of Week</label>
+          <select id="bill-reminder-weekday">
+            <option value="0">Sunday</option>
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6">Saturday</option>
+          </select>
+        </div>
+        <div class="form-group hidden" id="bill-reminder-annual-group">
+          <label>Reminder — Month & Day</label>
+          <div class="reminder-row">
+            <select id="bill-reminder-month">
+              <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+              <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+              <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+            </select>
+            <select id="bill-reminder-day-annual"></select>
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Notes <span class="optional-label">(Optional)</span></label>
+          <textarea id="bill-notes" rows="2" placeholder="Account numbers, references, or specific instructions."></textarea>
+        </div>
+      </div>
+      <div style="margin-top: 14px; display: flex; gap: 10px;">
+        <button type="submit" class="btn btn-success">Save Bill</button>
+        <button type="button" class="btn btn-secondary" onclick="hideAddBillForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 4. EDIT BILL FORM -->
+  <div id="edit-bill-section" class="card hidden">
+    <div class="card-header">
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary);">Modify Bill Parameters</h3>
+    </div>
+    <form id="edit-bill-form" onsubmit="updateBill(event)">
+      <input type="hidden" id="edit-bill-id">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Bill Name</label>
+          <input type="text" id="edit-name" required>
+        </div>
+        <div class="form-group">
+          <label>Amount (₱)</label>
+          <input type="number" id="edit-amount" min="0.01" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>Mode of Payment</label>
+          <select id="edit-mode" required>
+            <option value="Cash">Cash</option>
+            <option value="GCash">GCash</option>
+            <option value="Maya">Maya</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="Credit Card">Credit Card</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Frequency</label>
+          <select id="edit-frequency" onchange="toggleReminderFields('edit')" required>
+            <option value="One-time">One-time</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Annual">Annual</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Next Due Date</label>
+          <input type="date" id="edit-due-date" required>
+        </div>
+
+        <!-- Reminder: shape depends on frequency -->
+        <div class="form-group hidden" id="edit-reminder-none-group">
+          <label>Reminder <span class="optional-label">(Not applicable)</span></label>
+          <input type="text" value="One-time bills use the due date above — no separate reminder needed." disabled>
+        </div>
+        <div class="form-group hidden" id="edit-reminder-monthly-group">
+          <label>Reminder — Day of Month</label>
+          <input type="number" id="edit-reminder-day-month" min="1" max="31" placeholder="e.g., 5">
+        </div>
+        <div class="form-group hidden" id="edit-reminder-weekly-group">
+          <label>Reminder — Day of Week</label>
+          <select id="edit-reminder-weekday">
+            <option value="0">Sunday</option>
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6">Saturday</option>
+          </select>
+        </div>
+        <div class="form-group hidden" id="edit-reminder-annual-group">
+          <label>Reminder — Month & Day</label>
+          <div class="reminder-row">
+            <select id="edit-reminder-month">
+              <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+              <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+              <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+            </select>
+            <select id="edit-reminder-day-annual"></select>
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Notes</label>
+          <textarea id="edit-notes" rows="2"></textarea>
+        </div>
+      </div>
+      <div style="margin-top: 14px; display: flex; gap: 10px;">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="button" class="btn btn-secondary" onclick="hideEditBillForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 5. PAY BILL FORM -->
+  <div id="pay-bill-section" class="card hidden">
+    <div class="card-header">
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary);">Record Bill Payment</h3>
+    </div>
+    <form id="pay-bill-form" onsubmit="recordPayment(event)">
+      <input type="hidden" id="pay-target-instance" value="">
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Select Bill to Pay</label>
+          <div class="bill-picker" id="bill-picker">
+            <button type="button" class="bill-picker-trigger" id="pay-bill-trigger" onclick="toggleBillPicker(event)">
+              <span class="bill-picker-placeholder" id="pay-bill-trigger-text">Choose a bill...</span>
+              <svg class="bill-picker-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="bill-picker-panel hidden" id="pay-bill-panel"></div>
+            <input type="hidden" id="pay-bill-select" value="">
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <div id="pay-instance-info" class="info-box hidden"></div>
+        </div>
+        <div class="form-group">
+          <label>Amount Paid (₱)</label>
+          <input type="number" id="pay-amount" min="0.01" step="0.01" disabled required>
+        </div>
+        <div class="form-group">
+          <label>Date & Time Paid</label>
+          <input type="datetime-local" id="pay-timestamp" required>
+        </div>
+        <div class="form-group">
+          <label>Proof of Payment File <span class="optional-label">(Receipt / Screenshot)</span></label>
+          <input type="file" id="pay-proof" accept="image/*,.pdf">
+        </div>
+        <div class="form-group full-width">
+          <label>Payment Notes <span class="optional-label">(Optional)</span></label>
+          <textarea id="pay-notes" rows="2" placeholder="Transaction reference number, remarks..."></textarea>
+        </div>
+      </div>
+      <div style="margin-top: 14px; display: flex; gap: 10px;">
+        <button type="submit" id="pay-submit-btn" class="btn btn-success" disabled>Submit Payment</button>
+        <button type="button" class="btn btn-secondary" onclick="hidePayBillForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 6. COMPACT CALENDAR MONTHLY GRID WITH MONTH PICKER -->
+  <div class="card">
+    <div class="calendar-header calendar-header-v2">
+      <div class="calendar-nav-side">
+        <input type="month" id="calendar-month-picker" class="form-control" onchange="onMonthPickerChange(this.value)" title="Jump to a specific month & year" />
+      </div>
+      <div class="calendar-nav-main">
+        <button type="button" class="btn btn-secondary calendar-arrow-btn" onclick="changeMonth(-1)" aria-label="Previous month">&#8249;</button>
+        <div class="calendar-month-label" id="calendar-month-label">Month Year</div>
+        <button type="button" class="btn btn-secondary calendar-arrow-btn" onclick="changeMonth(1)" aria-label="Next month">&#8250;</button>
+      </div>
+      <div class="calendar-nav-side align-end">
+        <button type="button" class="btn btn-sm btn-secondary" onclick="goToToday()">Today</button>
+      </div>
+    </div>
+
+    <div class="calendar-container">
+      <div class="calendar-days-header">
+        <div>Sun</div>
+        <div>Mon</div>
+        <div>Tue</div>
+        <div>Wed</div>
+        <div>Thu</div>
+        <div>Fri</div>
+        <div>Sat</div>
+      </div>
+      <div id="calendar-grid-month" class="calendar-grid-month">
+        <!-- Cells generated by JS -->
+      </div>
+    </div>
+
+    <!-- TRANSACTION LEDGER WITH BILL NAME SEARCH -->
+    <div class="section-header">
+      <div class="section-title">Payment Transaction Ledger</div>
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <input type="text" id="ledger-search" class="search-bar" placeholder="Search Bill Name only..." oninput="renderLedger()">
+        <button type="button" class="btn btn-secondary" onclick="exportLedgerCSV()">Export CSV</button>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date & Time Paid</th>
+            <th>Bill Name</th>
+            <th>Amount Paid</th>
+            <th>Mode</th>
+            <th>Proof of Payment</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="ledger-rows">
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted);">No payment transactions logged yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PERIOD SUMMARY ANALYTICS -->
+    <div class="section-header">
+      <div class="section-title">Period Summary Analytics</div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <label for="summary-period-selector" style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Group By:</label>
+        <select id="summary-period-selector" onchange="renderPeriodSummary()" style="padding: 7px 12px;">
+          <option value="monthly">Monthly Summary</option>
+          <option value="weekly">Weekly Summary</option>
+        </select>
+      </div>
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Time Period</th>
+          <th>Total Bills Due</th>
+          <th>Total Amount Paid</th>
+          <th>Unpaid Balance</th>
+          <th>Bills Count</th>
+        </tr>
+      </thead>
+      <tbody id="summary-rows">
+        <tr>
+          <td colspan="5" style="text-align: center; color: var(--text-muted);">No period data available yet.</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+  <!-- 7. CLICK-TO-ACTION CARD MODAL -->
+  <div id="bill-action-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-title" id="modal-bill-title">Bill Name</div>
+      
+      <div class="modal-details-row">
+        <span style="color: var(--text-muted);">Amount Due:</span>
+        <strong id="modal-bill-amount" style="color: var(--primary);">₱0.00</strong>
+      </div>
+      <div class="modal-details-row">
+        <span style="color: var(--text-muted);">Due Date:</span>
+        <strong id="modal-bill-due"></strong>
+      </div>
+      <div class="modal-details-row">
+        <span style="color: var(--text-muted);">Reminder:</span>
+        <strong id="modal-bill-reminder"></strong>
+      </div>
+      <div class="modal-details-row">
+        <span style="color: var(--text-muted);">Frequency & Mode:</span>
+        <strong id="modal-bill-frequency"></strong>
+      </div>
+      <div class="modal-details-row">
+        <span style="color: var(--text-muted);">Payment Status:</span>
+        <span id="modal-bill-status" class="badge">Pending</span>
+      </div>
+      <div class="modal-details-row" style="flex-direction: column; gap: 4px;">
+        <span style="color: var(--text-muted);">Notes:</span>
+        <span id="modal-bill-notes" style="font-size: 0.88rem;">—</span>
+      </div>
+
+      <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-secondary" onclick="closeActionModal()">Close</button>
+        <button type="button" class="btn btn-secondary" onclick="openModifyFromModal()">Modify / Edit</button>
+        <button type="button" id="modal-pay-btn" class="btn btn-success" onclick="openPayFromModal()">Pay This Bill</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="bills.js"></script>
+</body>
+</html>

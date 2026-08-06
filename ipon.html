@@ -13,6 +13,21 @@
 </head>
 <body>
 
+    <!-- 2. HEADER CONTROLS -->
+  <div class="header-controls">
+    <div>
+      <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">Savings Management</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Click any goal below to manage its progress and schedule.</p>
+    </div>
+    <div class="selector-group">
+      <label for="goal-selector" style="font-weight: 600; font-size: 0.9rem; white-space: nowrap;">Active Goal:</label>
+      <select id="goal-selector" onchange="switchGoal()">
+        <option value="">No Account Selected</option>
+      </select>
+      <button class="btn btn-primary" onclick="showCreateForm()">+ Create New Goal</button>
+    </div>
+  </div>
+
   <!-- 1. TOP ANALYTICS DASHBOARD -->
   <div class="analytics-top">
     <div class="stat-card">
@@ -31,17 +46,6 @@
       <div class="label">Overall Completion</div>
       <div class="value" id="stat-overall-progress">0%</div>
     </div>
-  </div>
-
-  <!-- 2. GOAL SELECTOR & ACTION BAR -->
-  <div class="header-controls">
-    <div class="selector-group">
-      <label for="goal-selector" style="font-weight: 600; font-size: 0.9rem;">Active Goal:</label>
-      <select id="goal-selector" onchange="switchGoal()">
-        <option value="">No Account Selected</option>
-      </select>
-    </div>
-    <button class="btn btn-primary" onclick="showCreateForm()">+ Create New Goal</button>
   </div>
 
   <!-- 3. CREATE NEW GOAL FORM -->

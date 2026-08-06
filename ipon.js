@@ -681,8 +681,10 @@ function applySuggestion(prefix) {
 
 function showCreateForm() {
   hideEditForm();
-  document.getElementById("create-goal-section").classList.remove("hidden");
+  const section = document.getElementById("create-goal-section");
+  section.classList.remove("hidden");
   updateSuggestion('create');
+  section.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function hideCreateForm() {
@@ -732,6 +734,7 @@ function saveNewGoal(e) {
   renderGoalSelector();
   updateTopAnalytics();
   renderActiveGoal();
+  document.getElementById("active-goal-section").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function showEditForm() {
@@ -751,7 +754,9 @@ function showEditForm() {
 
   toggleIntervalField('edit');
   updateSuggestion('edit');
-  document.getElementById("edit-goal-section").classList.remove("hidden");
+  const editSection = document.getElementById("edit-goal-section");
+  editSection.classList.remove("hidden");
+  editSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function hideEditForm() {

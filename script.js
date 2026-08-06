@@ -124,3 +124,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+    // Drawer & View Switching Script
+    const burgerToggle = document.getElementById('burger-toggle');
+    const sideDrawer = document.getElementById('side-drawer');
+    const navOverlay = document.getElementById('nav-overlay');
+    const drawerClose = document.getElementById('drawer-close');
+    const menuItems = document.querySelectorAll('.menu-item, .nav-icon-btn');
+    const viewContainers = document.querySelectorAll('.view-container');
+    const currentViewLabel = document.getElementById('current-view-label');
+
+    function toggleDrawer() {
+      sideDrawer.classList.toggle('open');
+      navOverlay.classList.toggle('active');
+    }
+
+    burgerToggle.addEventListener('click', toggleDrawer);
+    drawerClose.addEventListener('click', toggleDrawer);
+    navOverlay.addEventListener('click', toggleDrawer);
+
+    menuItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetView = item.getAttribute('data-view');
+        if (!targetView) return;
+
+        viewContainers.forEach(container => container.classList.remove('active'));
+        
+        const activeContainer = document.getElementById(targetView + '-view');
+        if (activeContainer) {
+          activeContainer.classList.add('active');
+        }
+
+        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+        if (item.classList.contains('menu-item')) {
+          item.classList.add('active');
+          currentViewLabel.textContent = item.textContent.trim();
+        }
+
+        if (sideDrawer.classList.contains('open')) {
+          toggleDrawer();
+        }
+      });
+    });
